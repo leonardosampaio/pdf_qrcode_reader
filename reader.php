@@ -28,9 +28,9 @@ else if (!file_exists($argv[1]))
 }
 
 //https://imagemagick.org/script/command-line-options.php
-//image size, smaller values make the process faster
+//image scaling, smaller values make the process faster
 // but may cause false negatives in the extraction
-$imageMagickImageDensity = 120;
+$imageMagickImageDensity = 160;
 
 $tempDir =                  sys_get_temp_dir();
 $isWindows =                strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
@@ -45,7 +45,7 @@ $filePath = explode($pathSeparator, $argv[1]);
 $fileName = end($filePath);
 
 //extract images
-exec($imageMagickExecutable . ' -density '.$imageMagickImageDensity.' -define png:color-type=6 ' . $argv[1] . ' ' . $tempDir . $pathSeparator . $fileName .'page%04d.png');
+exec($imageMagickExecutable . ' -density '.$imageMagickImageDensity.' -background white -alpha remove -define png:color-type=6 ' . $argv[1] . ' ' . $tempDir . $pathSeparator . $fileName .'page%04d.png');
 
 $textOutput = '';
 $totalPages = 0;
