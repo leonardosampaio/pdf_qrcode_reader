@@ -45,7 +45,8 @@ $filePath = explode($pathSeparator, $argv[1]);
 $fileName = end($filePath);
 
 //extract images
-exec($imageMagickExecutable . ' -density '.$imageMagickImageDensity.' -background white -alpha remove -define png:color-type=6 ' . $argv[1] . ' ' . $tempDir . $pathSeparator . $fileName .'page%04d.png');
+exec($imageMagickExecutable . ' -density '.$imageMagickImageDensity.' -background white -define png:color-type=6 ' . $argv[1] . ' -alpha remove ' . $tempDir . $pathSeparator . $fileName 
+.'page%04d.png');
 
 $textOutput = '';
 $totalPages = 0;
