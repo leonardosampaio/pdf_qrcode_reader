@@ -33,7 +33,7 @@ else if (!file_exists($input))
 //https://imagemagick.org/script/command-line-options.php
 //image scaling, smaller values make the process faster
 // but may cause false negatives in the extraction
-$imageMagickImageDensity = 160;
+$imageMagickImageDensity = 170;
 
 $isWindows =                strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
 $pathSeparator =            $isWindows ? '\\' : '/';
@@ -66,12 +66,12 @@ foreach(scandir($tempDir) as $file)
         $tempPngFile = $tempDir . $pathSeparator . $file;
 
         //qrcode data with zbarimg
-        $qrcodeData = shell_exec($zbarExecutable . ' --quiet ' . $tempPngFile);
+        $qrcodeData = utf8_decode(shell_exec($zbarExecutable . ' --quiet ' . $tempPngFile));
 
         if ($qrcodeData == null || $qrcodeData == '')
         {
             //fallback, qrcode data with zxing
-            $qrcodeData = shell_exec($jarExecutable . ' ' . $tempPngFile);
+            $qrcodeData = utf8_encode(shell_exec($jarExecutable . ' ' . $tempPngFile));
         }
 
         if ($qrcodeData)
