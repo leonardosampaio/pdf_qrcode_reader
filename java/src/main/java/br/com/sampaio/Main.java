@@ -27,7 +27,7 @@ public class Main {
 	        BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
 	
 			Map hintMap = new HashMap<EncodeHintType, ErrorCorrectionLevel>();
-		    hintMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
+		    hintMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);
 		    
 			Result[] qrCodeResult = new QRCodeMultiReader().decodeMultiple(bitmap, hintMap);
 			
