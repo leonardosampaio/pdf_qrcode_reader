@@ -18,11 +18,14 @@ if (php_sapi_name() !== 'cli')
     die('This should run in cli');
 }
 
-if (!isset($argv[1]))
+preg_match('/^[^*?"<>|]*$/',$argv[1],$matches);
+$input = $matches ? $matches[0] : null;
+
+if (!isset($input))
 {
     die('Inform the input file');
 }
-else if (!file_exists($argv[1]))
+else if (!file_exists($input))
 {
     die('Input file not found');
 }
@@ -32,20 +35,21 @@ else if (!file_exists($argv[1]))
 // but may cause false negatives in the extraction
 $imageMagickImageDensity = 160;
 
-$tempDir =                  sys_get_temp_dir();
 $isWindows =                strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
 $pathSeparator =            $isWindows ? '\\' : '/';
+$tempDir =                  sys_get_temp_dir() . $pathSeparator .rand(100000, 999999);
 
 $zbarExecutable =           'zbarimg';
 $jarExecutable =            'java -jar '.__DIR__.$pathSeparator.'java'.$pathSeparator.'dist'.$pathSeparator.'zxing-cmd-1.0-jar-with-dependencies.jar';
 $imageMagickExecutable =    $isWindows ? 'magick' : 'convert';
-$rmExecutable =             $isWindows ? 'del' : 'rm';
 
-$filePath = explode($pathSeparator, $argv[1]);
-$fileName = end($filePath);
+$fileName = pathinfo($input)['filename'];
+
+//create temporary dir
+exec('mkdir '.$tempDir);
 
 //extract images
-exec($imageMagickExecutable . ' -density '.$imageMagickImageDensity.' -background white -define png:color-type=6 ' . $argv[1] . ' -alpha remove ' . $tempDir . $pathSeparator . $fileName 
+exec($imageMagickExecutable . ' -density '.$imageMagickImageDensity.' -background white -define png:color-type=6 ' . $input . ' -alpha remove ' . $tempDir . $pathSeparator . $fileName 
 .'page%04d.png');
 
 $textOutput = '';
@@ -84,12 +88,25 @@ if ($totalPages)
     $textOutput .= 'TOTALPAGES ' . $totalPages . PHP_EOL;
 }
 
-//delete temporary images
-exec($rmExecutable . ' ' . $tempDir . $pathSeparator . $fileName .'*.png');
+//delete temporary dir
+if ($isWindows)
+{
+    exec("del $tempDir$pathSeparator$fileName*.png");
+    exec("rmdir $tempDir");
+}
+else {
+    exec("rm -R $tempDir");
+}
 
 echo $textOutput;
 
-if (isset($argv[2]) && $textOutput)
+if (isset($argv[2]))
 {
-    file_put_contents($argv[2], $textOutput);
+    preg_match('/^[^*?"<>|]*$/',$argv[2],$matches);
+    $output = $matches ? $matches[0] : null;
+
+    if (isset($output) && $textOutput)
+    {
+        file_put_contents($output, $textOutput);
+    }
 }
