@@ -1,10 +1,5 @@
 ## PDF qrcode extractor
  
-
-**Leonardo Sampaio - Upwork - 2021-05-26**
-
-**leonardors@gmail.com**
-
 Usage:
 
     php reader.php /path/to/input.pdf /path/to/output.txt #(output file optional)
