@@ -2,43 +2,45 @@ package br.com.sampaio;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
 
+import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
-import com.google.zxing.EncodeHintType;
+import com.google.zxing.DecodeHintType;
 import com.google.zxing.RGBLuminanceSource;
 import com.google.zxing.Result;
-import com.google.zxing.common.HybridBinarizer;
-import com.google.zxing.multi.qrcode.QRCodeMultiReader;
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+import com.google.zxing.common.GlobalHistogramBinarizer;
+import com.google.zxing.datamatrix.DataMatrixReader;
 
 public class Main {
 
 	public static void main(String[] args) {
 		try {
-			File file = new File(args[0]);
+			File file = new File("/home/lrs/git/upwork/pdf_qrcode_reader/test/descentralizado.png");
 			
 	        BufferedImage image = ImageIO.read(file);
 	        int[] pixels = image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
 	        RGBLuminanceSource source = new RGBLuminanceSource(image.getWidth(), image.getHeight(), pixels);
-	        BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+	        BinaryBitmap bitmap = new BinaryBitmap(new GlobalHistogramBinarizer(source));
 	
-			Map hintMap = new HashMap<EncodeHintType, ErrorCorrectionLevel>();
-		    hintMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);
-		    
-			Result[] qrCodeResult = new QRCodeMultiReader().decodeMultiple(bitmap, hintMap);
+			Map<DecodeHintType, Object> hints = new HashMap<DecodeHintType, Object>();
+			hints.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
+			hints.put(DecodeHintType.POSSIBLE_FORMATS, BarcodeFormat.DATA_MATRIX);
+
+			DataMatrixReader reader = new DataMatrixReader();
+
+			Result qrCodeResult = reader.decode(bitmap, hints);
 			
-			for (Result result2 : qrCodeResult) {
-				System.out.println(result2.getText().trim());
-			}
+			System.out.println(qrCodeResult.getText().trim());
 		}
 		catch (Exception e)
 		{
-			//ignore console output
+			e.printStackTrace();
 		}
-		
 	}
 }

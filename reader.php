@@ -5,13 +5,16 @@
 PDF qrcode extractor
 
 Leonardo Sampaio - Upwork - 2021-05-26
-leonardors@gmail.com
 
 Usage:
 
 php reader.php /path/to/input.pdf /path/to/output.txt (optional)
 
 */
+
+function debug($str) {
+    echo $str . PHP_EOL; 
+}
 
 if (php_sapi_name() !== 'cli')
 {
@@ -49,15 +52,16 @@ $fileName = pathinfo($input)['filename'];
 exec('mkdir '.$tempDir);
 
 //extract images
-exec($imageMagickExecutable . ' -density '.$imageMagickImageDensity.' -background white -define png:color-type=6 ' . $input . ' -alpha remove ' . $tempDir . $pathSeparator . $fileName 
-.'page%04d.png');
+$command = $imageMagickExecutable . ' -density '.$imageMagickImageDensity.' -background white -define png:color-type=6 ' . $input . ' -alpha remove ' . $tempDir . $pathSeparator . $fileName 
+.'page%04d.png';
+debug($command);
+exec($command);
 
 $textOutput = '';
 $totalPages = 0;
-foreach(scandir($tempDir) as $file)
-{
-    if (strpos($file,$fileName)!==false)
-    {
+foreach (scandir($tempDir) as $file) {
+
+    if (strpos($file,$fileName)!==false) {
         $totalPages+=1;
         
         preg_match('/page([0-9]+)\.png/', $file, $matches);
@@ -66,16 +70,19 @@ foreach(scandir($tempDir) as $file)
         $tempPngFile = $tempDir . $pathSeparator . $file;
 
         //qrcode data with zbarimg
-        $qrcodeData = utf8_decode(shell_exec($zbarExecutable . ' --quiet ' . $tempPngFile));
+        $command = $zbarExecutable . ' --quiet ' . $tempPngFile;
+        debug($command);
+        $qrcodeData = utf8_decode(shell_exec($command));
 
-        if ($qrcodeData == null || $qrcodeData == '')
-        {
+        if ($qrcodeData == null || $qrcodeData == '') {
             //fallback, qrcode data with zxing
-            $qrcodeData = utf8_encode(shell_exec($jarExecutable . ' ' . $tempPngFile));
+            echo $jarExecutable . ' ' . $tempPngFile;
+            $command = $jarExecutable . ' ' . $tempPngFile;
+            debug($command);
+            $qrcodeData = utf8_encode(shell_exec($command));
         }
 
-        if ($qrcodeData)
-        {
+        if ($qrcodeData) {
             $textOutput .= 'FOUNDONPAGE ' . $page . PHP_EOL;
             $textOutput .= trim(str_replace('QR-Code:','',$qrcodeData));
             $textOutput .= PHP_EOL;
@@ -83,30 +90,31 @@ foreach(scandir($tempDir) as $file)
     }
 }
 
-if ($totalPages)
-{
+if ($totalPages) {
     $textOutput .= 'TOTALPAGES ' . $totalPages . PHP_EOL;
 }
 
 //delete temporary dir
-if ($isWindows)
-{
-    exec("del $tempDir$pathSeparator$fileName*.png");
-    exec("rmdir $tempDir");
-}
-else {
-    exec("rm -R $tempDir");
+if ($isWindows) {
+    $command = "del $tempDir$pathSeparator$fileName*.png";
+    exec($command);
+    debug($command);
+    $command = "rmdir $tempDir";
+    exec($command);
+    debug($command);
+} else {
+    $command = "rm -R $tempDir";
+    exec($commnad);
+    debug($command);
 }
 
 echo $textOutput;
 
-if (isset($argv[2]))
-{
+if (isset($argv[2])) {
     preg_match('/^[^*?"<>|]*$/',$argv[2],$matches);
     $output = $matches ? $matches[0] : null;
 
-    if (isset($output) && $textOutput)
-    {
+    if (isset($output) && $textOutput) {
         file_put_contents($output, $textOutput);
     }
 }
